@@ -1,40 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 🥷🏻 WebScraper with NextJS 🥷🏻
 
-## Getting Started
+> Dependencies: `npm i jsdom`
 
-First, run the development server:
+## Client:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> Path: `pages/index.tsx`
+
+```
+import { useState } from "react";
+
+export default function Home() {
+  const [downloads, setDownloads] = useState<string>("");
+  const [inputValue, setInputValue] = useState<string>("");
+
+  const getDownloads = async () => {
+    const response = await fetch("http://localhost:3000/api/getDownloads", {
+      method: "POST",
+      body: JSON.stringify({ inputValue })
+    });
+    const { downloads } = await response.json();
+    setDownloads(downloads);
+  };
+
+  return (
+    <section>
+      <h1>Downloads</h1>
+      <div>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+        />
+        <button onClick={getDownloads}>Go</button>
+      </div>
+      {downloads && <p>This package has <b>{downloads}</b> downloads</p>}
+    </section>
+  );
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Server:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+> Path: `pages/api/getDownloads.tsx`
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```
+import { JSDOM } from "jsdom";
+import { NextApiRequest, NextApiResponse } from "next";
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+const getDownloads = async (req: NextApiRequest, res: NextApiResponse) => {
+  const body = JSON.parse(req.body);
+  const { inputValue } = body;
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  const response = await fetch(`https://www.npmjs.com/package/${inputValue}`);
+  const html = await response.text();
 
-## Learn More
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+  const downloads = document.querySelector("._9ba9a726")?.textContent;
 
-To learn more about Next.js, take a look at the following resources:
+  res.status(200).json({ downloads });
+}
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+export default getDownloads;
+```
