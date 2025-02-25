@@ -1,6 +1,9 @@
 # 🥷🏻 WebScraper with NextJS 🥷🏻
 
 > Dependencies: `npm i jsdom`
+<kbd>
+<img width="625" alt="Screenshot 2025-02-25 at 10 20 46 AM" src="https://github.com/user-attachments/assets/a8e23911-c9c2-43f7-9535-51cb07f18eba" />
+</kbd>
 
 ## Client:
 
